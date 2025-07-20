@@ -1,0 +1,48 @@
+import sqlite3
+from datetime import datetime
+
+class FinanceDB:
+    def __init__(self, db_path):
+        self.db_path = db_path
+        
+    def init_db(self):
+        conn = sqlite3.connect(self.db_path)
+        conn.execute('''CREATE TABLE IF NOT EXISTS expenses
+                     (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                     user_id TEXT,
+                     amount REAL,
+                     category TEXT,
+                     description TEXT,
+                     date TEXT)''')
+        conn.commit()
+        conn.close()
+    
+    def add_expense(self, user_id, amount, category, description):
+        conn = sqlite3.connect(self.db_path)
+        conn.execute('''INSERT INTO expenses 
+                     (user_id, amount, category, description, date)
+                     VALUES (?, ?, ?, ?, ?)''',
+                     (user_id, amount, category, description, 
+                     datetime.now().strftime('%Y-%m-%d')))
+        conn.commit()
+        conn.close()
+    
+    def get_summary(self, user_id, month=None):
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        query = '''SELECT category, SUM(amount) 
+                   FROM expenses 
+                   WHERE user_id = ?'''
+        params = [user_id]
+        
+        if month:
+            query += " AND strftime('%m', date) = ?"
+            params.append(f"{month:02d}")
+            
+        query += " GROUP BY category"
+        
+        cursor.execute(query, params)
+        results = cursor.fetchall()
+        conn.close()
+        return results
