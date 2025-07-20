@@ -1,0 +1,6 @@
+Whatsapp-Finance-Bot/
+├── app.py               # Código principal
+├── requirements.txt     # Dependências
+├── .env.example         # Configurações de ambiente
+├── whatsappbot          # Script de serviço (TrueNAS)
+└── README.md            # Instruções
