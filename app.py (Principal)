@@ -1,0 +1,26 @@
+from flask import Flask, request, jsonify
+from finance_db import FinanceDB
+from ia_processor import process_message
+import os
+
+app = Flask(__name__)
+db = FinanceDB('user_data/expenses.db')
+
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    data = request.get_json()
+    user_message = data.get('message', '')
+    user_id = data.get('user_id', 'default')
+    
+    response = process_message(user_message, user_id, db)
+    
+    return jsonify({
+        'response': response,
+        'status': 'success'
+    })
+
+if __name__ == '__main__':
+    os.makedirs('user_data', exist_ok=True)
+    if not os.path.exists('user_data/expenses.db'):
+        db.init_db()
+    app.run(host='0.0.0.0', port=5000)
