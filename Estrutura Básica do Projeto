@@ -1,6 +1,7 @@
 WhatsApp-Finance-IA/
-├── app.py                # Código principal
-├── requirements.txt      # Dependências
-├── finance_db.py         # Banco de dados local
-├── ia_processor.py       # Integração com IA
-└── README.md             # Instruções
+├── app.py
+├── finance_db.py
+├── ia_processor.py
+├── requirements.txt
+├── .gitignore
+└── README.md
