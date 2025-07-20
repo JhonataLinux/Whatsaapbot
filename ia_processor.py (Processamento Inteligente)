@@ -1,0 +1,62 @@
+import re
+from datetime import datetime
+
+def process_message(message, user_id, db):
+    message_lower = message.lower()
+    
+    if 'resumo' in message_lower:
+        month = extract_month(message_lower)
+        summary = db.get_summary(user_id, month)
+        return generate_summary(summary, month)
+    
+    amount, category = extract_expense_info(message)
+    if amount:
+        db.add_expense(user_id, amount, category, message)
+        return f"✅ Registrado: R${amount:.2f} - {category}"
+    return "Formato inválido. Ex: '100 mercado' ou 'resumo março'"
+
+def extract_expense_info(text):
+    match = re.search(r'(\d+[,.]?\d*)\s*(?:reais|r\$)?\s*(?:de|em)?\s*(.*)', text.lower())
+    if not match:
+        return None, None
+    
+    amount = float(match.group(1).replace(',', '.'))
+    raw_category = match.group(2).strip()
+    
+    categories = {
+        'mercado': 'alimentação',
+        'comida': 'alimentação',
+        'transporte': 'transporte',
+        'uber': 'transporte',
+        'aluguel': 'moradia'
+    }
+    
+    category = categories.get(raw_category, raw_category or 'outros')
+    return amount, category
+
+def extract_month(text):
+    months = {
+        'janeiro': 1, 'fevereiro': 2, 'março': 3,
+        'abril': 4, 'maio': 5, 'junho': 6,
+        'julho': 7, 'agosto': 8, 'setembro': 9,
+        'outubro': 10, 'novembro': 11, 'dezembro': 12
+    }
+    for month_name, month_num in months.items():
+        if month_name in text:
+            return month_num
+    return datetime.now().month
+
+def generate_summary(summary_data, month=None):
+    if not summary_data:
+        return "📭 Nenhum gasto registrado" + (" este mês" if month else "")
+    
+    month_name = f" em {list(months.keys())[month-1]}" if month else ""
+    text = f"📊 Resumo Financeiro{month_name}:\n\n"
+    total = 0
+    
+    for category, amount in summary_data:
+        text += f"• {category.title()}: R${amount:.2f}\n"
+        total += amount
+    
+    text += f"\n💵 Total: R${total:.2f}"
+    return text
